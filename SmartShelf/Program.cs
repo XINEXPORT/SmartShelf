@@ -11,7 +11,7 @@ internal class Program
     {
 
         Reader r = null;
-        r = Reader.Create("");
+        r = Reader.Create("tmr://COM4");
 
         //Uncomment this line to add default transport listener.
         r.Transport += r.SimpleTransportListener;
