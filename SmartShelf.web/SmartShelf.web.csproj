@@ -12,6 +12,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.IO.Ports" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MercuryAPI">
+      <HintPath>..\..\EE-144\mercuryapi-1.37.5.49\cs\MercuryAPI.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

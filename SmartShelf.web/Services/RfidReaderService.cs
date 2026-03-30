@@ -17,7 +17,7 @@ Fields:
 */
 public class TagReadResult
 {
-    public string TagId { get; set; }
+    public required string TagId { get; set; }
     public int Antenna { get; set; }
     public int Rssi { get; set; }
     public DateTime Timestamp { get; set; }
@@ -42,7 +42,8 @@ IMPORTANT:
 */
 public class RfidReaderService
 {
-    private Reader _reader;
+    //Reader? will allow _reader to default to null
+    private Reader? _reader;
 
     /*
     Method: Connect
@@ -65,6 +66,12 @@ public class RfidReaderService
     */
     public void Connect(string readerUri)
     {
+       //Prevent double connection
+        if (_reader != null)
+        {
+            throw new InvalidOperationException("Reader already connected.");
+        }
+
         _reader = Reader.Create(readerUri);
 
         try
@@ -102,12 +109,23 @@ public class RfidReaderService
             _reader.ParamSet("/reader/region/id", regions[0]);
         }
 
+        /*string? will allow null values without throwing an exception
+        we allow nulls because: 
+         - the reader is not fully initialized
+         - Connection glitch
+         - Firmware doesn’t return value
+         - API returns null internally
+        */
+        string? model = _reader.ParamGet("/reader/version/model")?.ToString();
+
         // Enable metadata (RSSI, antenna, timestamp, etc.)
-        string model = (string)_reader.ParamGet("/reader/version/model");
-        if (!model.Equals("Mercury6"))
+        if (!string.Equals(model, "Mercury6"))
         {
             _reader.ParamSet("/reader/metadata", SerialReader.TagMetadataFlag.ALL);
         }
+
+        // ADDED: Set read power (affects tag detection range and signal strength)
+        _reader.ParamSet("/reader/radio/readPower", 2000);
 
         /*
         Configure read plan:
@@ -142,17 +160,25 @@ public class RfidReaderService
 
         var results = new List<TagReadResult>();
 
-        TagReadData[] tagReads = _reader.Read(durationMs);
-
-        foreach (var tr in tagReads)
+        //Wrap read in try/catch for hardware safety
+        try
         {
-            results.Add(new TagReadResult
+            TagReadData[] tagReads = _reader.Read(durationMs);
+
+            foreach (var tr in tagReads)
             {
-                TagId = tr.EpcString,
-                Antenna = tr.Antenna,
-                Rssi = tr.Rssi,
-                Timestamp = tr.Time
-            });
+                results.Add(new TagReadResult
+                {
+                    TagId = tr.EpcString,
+                    Antenna = tr.Antenna,
+                    Rssi = tr.Rssi,
+                    Timestamp = tr.Time
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error reading tags: " + ex.Message);
         }
 
         return results;
@@ -170,5 +196,8 @@ public class RfidReaderService
     public void Disconnect()
     {
         _reader?.Destroy();
+
+        //Reset reader to allow clean reconnection
+        _reader = null;
     }
 }
