@@ -162,22 +162,16 @@ public class RfidReaderService
 
         TagReadData[] tagReads = _reader.Read(durationMs);
 
-            foreach (var tr in tagReads)
-            {
-                results.Add(new TagReadResult
-                {
-                    EPC = tr.EpcString,
-                    Antenna = tr.Antenna,
-                    Rssi = tr.Rssi,
-                    Timestamp = tr.Time
-                });
-            }
-        }
-        catch (Exception ex)
+        foreach (var tr in tagReads)
         {
-            throw new Exception("Error reading tags: " + ex.Message);
+            results.Add(new TagReadResult
+            {
+                EPC = tr.EpcString,
+                Antenna = tr.Antenna,
+                Rssi = tr.Rssi,
+                Timestamp = tr.Time
+            });
         }
-
         return results;
     }
 
