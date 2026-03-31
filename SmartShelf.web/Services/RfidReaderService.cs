@@ -10,7 +10,7 @@ Represents a single RFID tag read result.
 This is a clean, application-friendly model extracted from ThingMagic's TagReadData.
 
 Fields:
-- TagId     : Unique EPC identifier of the RFID tag
+- EPC       : Unique EPC identifier of the RFID tag
 - Antenna   : Antenna number that detected the tag
 - Rssi      : Signal strength (used for distance estimation / localization)
 - Timestamp : Time when the tag was read
