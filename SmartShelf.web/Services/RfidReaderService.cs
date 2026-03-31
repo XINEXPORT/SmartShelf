@@ -124,7 +124,7 @@ public class RfidReaderService
             _reader.ParamSet("/reader/metadata", SerialReader.TagMetadataFlag.ALL);
         }
 
-        // ADDED: Set read power (affects tag detection range and signal strength)
+        // Set read power (affects tag detection range and signal strength)
         _reader.ParamSet("/reader/radio/readPower", 2000);
 
         /*

@@ -1,10 +1,17 @@
+using SmartShelf.web.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
+// API controllers
 builder.Services.AddControllers();
 
-var app = builder.Build();
+builder.Services.AddDbContext<SmartShelfContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("SmartShelfContext")
+    ));
 
-app.UseRouting();
+var app = builder.Build();
 
 app.UseAuthorization();
 
