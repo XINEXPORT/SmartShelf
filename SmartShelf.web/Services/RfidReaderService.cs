@@ -10,14 +10,14 @@ Represents a single RFID tag read result.
 This is a clean, application-friendly model extracted from ThingMagic's TagReadData.
 
 Fields:
-- TagId     : Unique EPC identifier of the RFID tag
+- EPC       : Unique EPC identifier of the RFID tag
 - Antenna   : Antenna number that detected the tag
 - Rssi      : Signal strength (used for distance estimation / localization)
 - Timestamp : Time when the tag was read
 */
 public class TagReadResult
 {
-    public required string TagId { get; set; }
+    public required string EPC { get; set; }
     public int Antenna { get; set; }
     public int Rssi { get; set; }
     public DateTime Timestamp { get; set; }
@@ -160,16 +160,13 @@ public class RfidReaderService
 
         var results = new List<TagReadResult>();
 
-        //Wrap read in try/catch for hardware safety
-        try
-        {
-            TagReadData[] tagReads = _reader.Read(durationMs);
+        TagReadData[] tagReads = _reader.Read(durationMs);
 
             foreach (var tr in tagReads)
             {
                 results.Add(new TagReadResult
                 {
-                    TagId = tr.EpcString,
+                    EPC = tr.EpcString,
                     Antenna = tr.Antenna,
                     Rssi = tr.Rssi,
                     Timestamp = tr.Time

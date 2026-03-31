@@ -4,8 +4,8 @@
 [Route("api/rfid")]
 public class RfidController : ControllerBase
 {
-    [HttpGet("test")]
-    public IActionResult Test()
+    [HttpGet("read-tags")]
+    public IActionResult ReadTags()
     {
         var service = new RfidReaderService();
 
