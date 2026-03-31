@@ -17,7 +17,7 @@ Fields:
 */
 public class TagReadResult
 {
-    public string TagId { get; set; }
+    public required string EPC { get; set; }
     public int Antenna { get; set; }
     public int Rssi { get; set; }
     public DateTime Timestamp { get; set; }
@@ -144,15 +144,20 @@ public class RfidReaderService
 
         TagReadData[] tagReads = _reader.Read(durationMs);
 
-        foreach (var tr in tagReads)
-        {
-            results.Add(new TagReadResult
+            foreach (var tr in tagReads)
             {
-                TagId = tr.EpcString,
-                Antenna = tr.Antenna,
-                Rssi = tr.Rssi,
-                Timestamp = tr.Time
-            });
+                results.Add(new TagReadResult
+                {
+                    EPC = tr.EpcString,
+                    Antenna = tr.Antenna,
+                    Rssi = tr.Rssi,
+                    Timestamp = tr.Time
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error reading tags: " + ex.Message);
         }
 
         return results;
