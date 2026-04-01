@@ -9,6 +9,7 @@ namespace SmartShelf.web.Models
 
         public string Location { get; set; } = string.Empty;
 
+        //Relationships
         public ICollection<TagReadEvent> TagReadEvents { get; set; } = new List<TagReadEvent>();
 
         public ICollection<TagCurrentState> TagCurrentStates { get; set; } = new List<TagCurrentState>();

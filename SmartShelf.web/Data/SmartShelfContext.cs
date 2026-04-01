@@ -13,5 +13,6 @@ namespace SmartShelf.web.Data
         public DbSet<Tag> Tag { get; set; }
         public DbSet<Product> Product { get; set; }
         public DbSet<Reader> Reader { get; set; }
+        public DbSet<TagCurrentState> TagCurrentState { get; set; }
     }
 }
