@@ -14,7 +14,11 @@ namespace SmartShelf.web.Models
         [ForeignKey(nameof(ProductId))]
         public Product Product { get; set; } = null!;
 
+        //Relationships
         // one tag → many read events
         public ICollection<TagReadEvent> TagReadEvents { get; set; } = new List<TagReadEvent>();
+
+        // one tag → one current state
+        public TagCurrentState? CurrentState { get; set; }
     }
 }
