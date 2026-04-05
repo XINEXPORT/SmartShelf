@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ThingMagic;
 
 /*
@@ -54,7 +55,7 @@ public class RfidReaderService
     Example URIs:
     - Serial (Windows): tmr:///com4
     - Serial (Linux):   tmr:///dev/ttyUSB1
-    - Network reader:   tmr://192.168.1.100
+    - Network reader:   tmr://555.555.1.100
 
     Steps:
     1. Create reader instance
@@ -66,13 +67,19 @@ public class RfidReaderService
     */
     public void Connect(string readerUri)
     {
-       //Prevent double connection
+        //Prevent double connection
         if (_reader != null)
         {
             throw new InvalidOperationException("Reader already connected.");
         }
 
         _reader = Reader.Create(readerUri);
+
+        // explicitly set known baud rate from JADAK Reader Assistant
+        if (_reader is SerialReader)
+        {
+            _reader.ParamSet("/reader/baudRate", 115200); 
+        }
 
         try
         {
@@ -82,7 +89,7 @@ public class RfidReaderService
         {
             /*
             If connection times out on a serial reader,
-            attempt baud rate probing (ThingMagic-specific behavior)
+            attempt baud rate probing
             */
             if (ex.Message.Contains("The operation has timed out") && _reader is SerialReader sr)
             {
@@ -98,7 +105,7 @@ public class RfidReaderService
             }
         }
 
-        // Ensure region is set (required)
+        // Ensure region is set
         if ((Reader.Region)_reader.ParamGet("/reader/region/id") == Reader.Region.UNSPEC)
         {
             var regions = (Reader.Region[])_reader.ParamGet("/reader/region/supportedRegions");
@@ -110,7 +117,7 @@ public class RfidReaderService
         }
 
         /*string? will allow null values without throwing an exception
-        we allow nulls because: 
+           we allow nulls because: 
          - the reader is not fully initialized
          - Connection glitch
          - Firmware doesn’t return value
@@ -125,7 +132,7 @@ public class RfidReaderService
         }
 
         // Set read power (affects tag detection range and signal strength)
-        _reader.ParamSet("/reader/radio/readPower", 2000);
+        _reader.ParamSet("/reader/radio/readPower", 2300); 
 
         /*
         Configure read plan:
@@ -133,7 +140,13 @@ public class RfidReaderService
         - GEN2 → UHF RFID protocol
         - 1000 → internal timing parameter
         */
-        var plan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null, 1000);
+        int[] antennaList = { 1 };
+
+        /*
+        Made antenna selection explicit for testing and debugging.
+        This helps confirm exactly which antenna is being used.
+        */
+        var plan = new SimpleReadPlan(antennaList, TagProtocol.GEN2, null, null, 1000);
         _reader.ParamSet("/reader/read/plan", plan);
     }
 
@@ -145,33 +158,44 @@ public class RfidReaderService
 
     Behavior:
     - Blocking call (waits for durationMs)
-    - Collects ALL tags seen during the time window
+    - Collects ALL tag reads seen during the full time window
 
     Parameters:
-    - durationMs (int) : Read duration in milliseconds (default = 500)
+    - durationMs (int) : Total read duration in milliseconds (default = 3000)
 
     Returns:
     - List<TagReadResult> : Processed tag data (not raw ThingMagic objects)
     */
-    public List<TagReadResult> ReadTags(int durationMs = 500)
+    public List<TagReadResult> ReadTags(int durationMs = 3000)
     {
         if (_reader == null)
             throw new InvalidOperationException("Reader not connected. Call Connect() first.");
 
         var results = new List<TagReadResult>();
 
-        TagReadData[] tagReads = _reader.Read(durationMs);
+        /*
+        Read in smaller chunks so more raw reads can be collected
+        across the full duration window.
+        */
+        int chunkMs = 500;
+        int cycles = Math.Max(1, durationMs / chunkMs);
 
-        foreach (var tr in tagReads)
+        for (int i = 0; i < cycles; i++)
         {
-            results.Add(new TagReadResult
+            TagReadData[] tagReads = _reader.Read(chunkMs);
+
+            foreach (var tr in tagReads)
             {
-                EPC = tr.EpcString,
-                Antenna = tr.Antenna,
-                Rssi = tr.Rssi,
-                Timestamp = tr.Time
-            });
+                results.Add(new TagReadResult
+                {
+                    EPC = tr.EpcString,
+                    Antenna = tr.Antenna,
+                    Rssi = tr.Rssi,
+                    Timestamp = tr.Time
+                });
+            }
         }
+
         return results;
     }
 
