@@ -9,7 +9,7 @@ namespace SmartShelf.web.Data
             : base(options) { }
 
         //Models for database tables
-        public DbSet<TagReadEvent> TagReadEvents { get; set; }
+        public DbSet<TagReadEvent> TagReadEvent { get; set; }
         public DbSet<Tag> Tag { get; set; }
         public DbSet<Product> Product { get; set; }
         public DbSet<Reader> Reader { get; set; }
