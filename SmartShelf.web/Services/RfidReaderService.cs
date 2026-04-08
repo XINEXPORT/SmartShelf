@@ -15,6 +15,8 @@ Fields:
 - Antenna   : Antenna number that detected the tag
 - Rssi      : Signal strength (used for distance estimation / localization)
 - Timestamp : Time when the tag was read
+- ReadCount  : Number of times the tag was seen during the read window
+- Frequency  : RF frequency used during the read
 */
 public class TagReadResult
 {
