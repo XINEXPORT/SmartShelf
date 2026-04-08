@@ -18,13 +18,16 @@ namespace SmartShelf.web.Models
         public int Rssi { get; set; }
 
         [Required]
-        public DateTime LastSeenTimestamp { get; set; }
-
-        [Required]
         public int ReadCount { get; set; }
 
         [Required]
         public int Frequency { get; set; }
+
+        [Required]
+        public bool IsPresent { get; set; }
+
+        [Required]
+        public DateTime LastSeenTimestamp { get; set; }
 
 
         //Relationships
