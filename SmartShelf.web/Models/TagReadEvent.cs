@@ -23,6 +23,12 @@ namespace SmartShelf.web.Models
         [Required]
         public int Rssi { get; set; }
 
+        [Required]
+        public int ReadCount { get; set; }
+
+        [Required]
+        public int Frequency { get; set; }
+
         //Relationships
         [ForeignKey(nameof(EPC))]
         public Tag Tag { get; set; } = null!;

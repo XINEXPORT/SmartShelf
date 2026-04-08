@@ -69,7 +69,9 @@ public class RfidController : ControllerBase
                     ReaderId = 1,
                     Timestamp = tag.Timestamp,
                     Antenna = tag.Antenna,
-                    Rssi = tag.Rssi
+                    Rssi = tag.Rssi,
+                    ReadCount = tag.ReadCount,
+                    Frequency = tag.Frequency
                 });
             }
 

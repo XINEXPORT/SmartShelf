@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartShelf.web.Data;
 
@@ -11,9 +12,11 @@ using SmartShelf.web.Data;
 namespace SmartShelf.web.Migrations
 {
     [DbContext(typeof(SmartShelfContext))]
-    partial class SmartShelfContextModelSnapshot : ModelSnapshot
+    [Migration("20260408035014_AddReadCountAndFrequency")]
+    partial class AddReadCountAndFrequency
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,14 +85,8 @@ namespace SmartShelf.web.Migrations
                     b.Property<int>("Antenna")
                         .HasColumnType("int");
 
-                    b.Property<int>("Frequency")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("LastSeenTimestamp")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("ReadCount")
-                        .HasColumnType("int");
 
                     b.Property<int>("ReaderId")
                         .HasColumnType("int");
@@ -118,12 +115,6 @@ namespace SmartShelf.web.Migrations
                     b.Property<string>("EPC")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("Frequency")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ReadCount")
-                        .HasColumnType("int");
 
                     b.Property<int>("ReaderId")
                         .HasColumnType("int");

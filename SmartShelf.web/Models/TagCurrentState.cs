@@ -20,6 +20,13 @@ namespace SmartShelf.web.Models
         [Required]
         public DateTime LastSeenTimestamp { get; set; }
 
+        [Required]
+        public int ReadCount { get; set; }
+
+        [Required]
+        public int Frequency { get; set; }
+
+
         //Relationships
         [ForeignKey(nameof(EPC))]
         public Tag Tag { get; set; } = null!;

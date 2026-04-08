@@ -22,6 +22,8 @@ public class TagReadResult
     public int Antenna { get; set; }
     public int Rssi { get; set; }
     public DateTime Timestamp { get; set; }
+    public int ReadCount { get; set; }
+    public int Frequency { get; set; }
 }
 
 /*
@@ -191,7 +193,9 @@ public class RfidReaderService
                     EPC = tr.EpcString,
                     Antenna = tr.Antenna,
                     Rssi = tr.Rssi,
-                    Timestamp = tr.Time
+                    Timestamp = tr.Time,
+                    ReadCount = tr.ReadCount,
+                    Frequency = tr.Frequency
                 });
             }
         }
