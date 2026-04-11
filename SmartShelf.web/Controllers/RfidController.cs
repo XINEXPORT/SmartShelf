@@ -1,15 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SmartShelf.web.Models;
 using SmartShelf.web.Data;
+using SmartShelf.web.Services;
 using System.Collections.Generic;
 using System.Linq;
-
-
 
 [ApiController]
 [Route("api/rfid")]
 public class RfidController : ControllerBase
 {
+    private readonly SmartShelfContext _context;
+
+    public RfidController(SmartShelfContext context)
+    {
+        _context = context;
+    }
+
     [HttpGet("read-tags")]
     public IActionResult ReadTags()
     {
@@ -18,33 +24,24 @@ public class RfidController : ControllerBase
         try
         {
             service.Connect("tmr:///COM4");
-
             var tags = service.ReadTags(1000);
-
-            service.Disconnect();
-
             return Ok(tags);
         }
         catch (Exception ex)
         {
             return BadRequest(ex.InnerException?.Message ?? ex.Message);
         }
-        finally {
+        finally
+        {
             service.Disconnect();
         }
-    }
-
-    private readonly SmartShelfContext _context;
-
-    public RfidController(SmartShelfContext context)
-    {
-        _context = context;
     }
 
     [HttpPost("read-and-save")]
     public IActionResult ReadAndSave()
     {
         var service = new RfidReaderService();
+        var presenceService = new TagPresenceService();
 
         try
         {
@@ -81,55 +78,80 @@ public class RfidController : ControllerBase
                 });
             }
 
-            // Save read history
+            // Save tag read history
             _context.TagReadEvent.AddRange(tagReadEvents);
             _context.SaveChanges();
 
-            // Get the most recent read per EPC for current state updates
-            var latestReadsPerTag = tagReadEvents
+            // Group current scan reads by EPC
+            var readsGroupedByEpc = tagReadEvents
                 .GroupBy(t => t.EPC)
-                .Select(g => g.OrderByDescending(x => x.Timestamp).First())
-                .ToList();
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.OrderByDescending(x => x.Timestamp).ToList()
+                );
 
-            foreach (var latestRead in latestReadsPerTag)
+            var seenEpcs = readsGroupedByEpc.Keys.ToHashSet();
+
+            // Update current state for tags seen in this scan
+            foreach (var kvp in readsGroupedByEpc)
             {
+                string epc = kvp.Key;
+                List<TagReadEvent> readsForTag = kvp.Value;
+
+                var latest = readsForTag.First();
+                bool isPresent = presenceService.IsTagPresent(readsForTag);
+
                 var existingState = _context.TagCurrentState
-                    .FirstOrDefault(tcs => tcs.EPC == latestRead.EPC);
+                    .FirstOrDefault(tcs => tcs.EPC == epc);
 
                 if (existingState == null)
                 {
                     _context.TagCurrentState.Add(new TagCurrentState
                     {
-                        EPC = latestRead.EPC,
-                        ReaderId = latestRead.ReaderId,
-                        Antenna = latestRead.Antenna,
-                        Rssi = latestRead.Rssi,
-                        LastSeenTimestamp = latestRead.Timestamp,
-                        ReadCount = latestRead.ReadCount,
-                        Frequency = latestRead.Frequency
+                        EPC = epc,
+                        ReaderId = latest.ReaderId,
+                        Antenna = latest.Antenna,
+                        Rssi = latest.Rssi,
+                        LastSeenTimestamp = latest.Timestamp,
+                        ReadCount = latest.ReadCount,
+                        Frequency = latest.Frequency,
+                        IsPresent = isPresent
                     });
                 }
                 else
                 {
-                    existingState.ReaderId = latestRead.ReaderId;
-                    existingState.Antenna = latestRead.Antenna;
-                    existingState.Rssi = latestRead.Rssi;
-                    existingState.LastSeenTimestamp = latestRead.Timestamp;
-                    existingState.ReadCount = latestRead.ReadCount;
-                    existingState.Frequency = latestRead.Frequency;
+                    existingState.ReaderId = latest.ReaderId;
+                    existingState.Antenna = latest.Antenna;
+                    existingState.Rssi = latest.Rssi;
+                    existingState.LastSeenTimestamp = latest.Timestamp;
+                    existingState.ReadCount = latest.ReadCount;
+                    existingState.Frequency = latest.Frequency;
+                    existingState.IsPresent = isPresent;
                 }
+            }
+
+            // Mark tags not seen in this scan as not present
+            var unseenStates = _context.TagCurrentState
+                .Where(tcs => !seenEpcs.Contains(tcs.EPC))
+                .ToList();
+
+            foreach (var state in unseenStates)
+            {
+                state.IsPresent = false;
             }
 
             _context.SaveChanges();
 
             return Ok(new
             {
-                message = "Tags saved successfully.",
+                message = "Tags processed successfully.",
                 totalTagsRead = tags.Count,
                 savedCount = tagReadEvents.Count,
                 skippedCount = skippedEpcs.Count,
                 skippedEpcs = skippedEpcs.Distinct().ToList(),
-                currentStateUpdated = latestReadsPerTag.Count
+                currentStateUpdated = readsGroupedByEpc.Count,
+                presentCount = _context.TagCurrentState.Count(t => t.IsPresent),
+                absentCount = _context.TagCurrentState.Count(t => !t.IsPresent)
             });
         }
         catch (Exception ex)
@@ -156,6 +178,7 @@ public class RfidController : ControllerBase
                 tcs.LastSeenTimestamp,
                 tcs.ReadCount,
                 tcs.Frequency,
+                tcs.IsPresent,
                 ProductId = tcs.Tag.ProductId,
                 ProductName = tcs.Tag.Product.Name
             })
@@ -165,4 +188,3 @@ public class RfidController : ControllerBase
         return Ok(currentState);
     }
 }
-
