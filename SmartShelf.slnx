@@ -1,4 +1,3 @@
 <Solution>
-  <Project Path="SmartShelf/SmartShelf.csproj" Id="3ddf2897-26e9-4392-9833-b2a18a79aca0" />
   <Project Path="SmartShelf.web/SmartShelf.web.csproj" />
 </Solution>
