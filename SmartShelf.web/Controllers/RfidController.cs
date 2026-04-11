@@ -27,7 +27,10 @@ public class RfidController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(ex.InnerException?.Message ?? ex.Message);
+        }
+        finally {
+            service.Disconnect();
         }
     }
 
@@ -53,19 +56,25 @@ public class RfidController : ControllerBase
             var tags = service.ReadTags(3000);
 
             var validEpcs = _context.Tag
-                .Select(t => t.EPC)
+                .Select(t => t.EPC.Trim().ToUpper())
                 .ToHashSet();
 
             var tagReadEvents = new List<TagReadEvent>();
+            var skippedEpcs = new List<string>();
 
             foreach (var tag in tags)
             {
-                if (!validEpcs.Contains(tag.EPC))
+                var epc = tag.EPC.Trim().ToUpper();
+
+                if (!validEpcs.Contains(epc))
+                {
+                    skippedEpcs.Add(tag.EPC);
                     continue;
+                }
 
                 tagReadEvents.Add(new TagReadEvent
                 {
-                    EPC = tag.EPC,
+                    EPC = epc,
                     ReaderId = 1,
                     Timestamp = tag.Timestamp,
                     Antenna = tag.Antenna,
@@ -78,14 +87,23 @@ public class RfidController : ControllerBase
             _context.TagReadEvent.AddRange(tagReadEvents);
             _context.SaveChanges();
 
-            service.Disconnect();
-
-            return Ok(tagReadEvents);
+            return Ok(new
+            {
+                message = "Tags saved successfully.",
+                totalTagsRead = tags.Count,
+                savedCount = tagReadEvents.Count,
+                skippedCount = skippedEpcs.Count,
+                skippedEpcs = skippedEpcs.Distinct().ToList()
+            });
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(ex.InnerException?.Message ?? ex.Message);
+        }
+        finally
+        {
+            service.Disconnect();
         }
     }
-
 }
+
