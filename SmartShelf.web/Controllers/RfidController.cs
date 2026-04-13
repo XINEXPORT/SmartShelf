@@ -115,7 +115,8 @@ public class RfidController : ControllerBase
                         LastSeenTimestamp = latest.Timestamp,
                         ReadCount = latest.ReadCount,
                         Frequency = latest.Frequency,
-                        IsPresent = isPresent
+                        IsPresent = isPresent,
+                        MissedScanCount = 0
                     });
                 }
                 else
@@ -126,7 +127,15 @@ public class RfidController : ControllerBase
                     existingState.LastSeenTimestamp = latest.Timestamp;
                     existingState.ReadCount = latest.ReadCount;
                     existingState.Frequency = latest.Frequency;
-                    existingState.IsPresent = isPresent;
+
+                    // If the tag is seen at all, reset misses
+                    existingState.MissedScanCount = 0;
+
+                    // If this scan is strong enough, mark present
+                    if (isPresent)
+                    {
+                        existingState.IsPresent = true;
+                    }
                 }
             }
 
@@ -137,7 +146,13 @@ public class RfidController : ControllerBase
 
             foreach (var state in unseenStates)
             {
-                state.IsPresent = false;
+                // Keep count of missed scans
+                state.MissedScanCount++;
+
+                if (state.MissedScanCount >= 3)
+                {
+                    state.IsPresent = false;
+                }
             }
 
             _context.SaveChanges();
@@ -179,6 +194,7 @@ public class RfidController : ControllerBase
                 tcs.ReadCount,
                 tcs.Frequency,
                 tcs.IsPresent,
+                tcs.MissedScanCount,
                 ProductId = tcs.Tag.ProductId,
                 ProductName = tcs.Tag.Product.Name
             })

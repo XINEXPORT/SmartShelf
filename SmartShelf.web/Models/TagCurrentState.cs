@@ -27,6 +27,9 @@ namespace SmartShelf.web.Models
         public bool IsPresent { get; set; }
 
         [Required]
+        public int MissedScanCount { get; set; } = 0;
+
+        [Required]
         public DateTime LastSeenTimestamp { get; set; }
 
 
