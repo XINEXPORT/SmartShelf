@@ -1,0 +1,102 @@
+//temperature and humidity sensing code using arduino
+//SCRAPPED IN FINAL PROJECT
+
+//wiring: 3.3V, GND, SDA, SCL
+
+#include <Wire.h>
+
+#define AHT20_ADDR 0x38
+
+void setup() {
+  Serial.begin(9600);
+  while (!Serial);
+  Wire.begin();
+  Wire.setClock(100000);
+  delay(100);
+
+  Wire.beginTransmission(AHT20_ADDR);
+  Wire.write(0xBA);
+  Wire.endTransmission();
+  delay(20);
+
+  //reading status to see if i2c communication happening 
+  Wire.requestFrom(AHT20_ADDR, 1);
+  uint8_t status = Wire.available() ? Wire.read() : 0xFF;
+  Serial.print("Status: 0x"); Serial.println(status, HEX);
+
+  //re-initalize if i2c comms not working
+  //fix for issues with i2c communication on first loop iteration
+  if (!(status & 0x08)) {
+    Serial.println("Sending init...");
+    Wire.beginTransmission(AHT20_ADDR);
+    Wire.write(0xBE);
+    Wire.write(0x08);
+    Wire.write(0x00);
+    Wire.endTransmission();
+    delay(10);
+  }
+}
+
+void loop() {
+  //measuring trigger to debug
+  //was not working b/c previous sensor fried
+  Wire.beginTransmission(AHT20_ADDR);
+  Wire.write(0xAC);
+  Wire.write(0x33);
+  Wire.write(0x00);
+  Wire.endTransmission();
+
+  delay(100);
+
+  //read first seven bytes (temp and humidity data)
+  uint8_t bytes = Wire.requestFrom(AHT20_ADDR, 7);
+
+  if (bytes < 6) {
+    Serial.print("ERROR: only got "); Serial.print(bytes); Serial.println(" bytes");
+    delay(2000);
+    return;
+  }
+
+  uint8_t data[7] = {0};
+  for (int i = 0; i < bytes; i++) {
+    data[i] = Wire.read();
+  }
+
+  //print raw bytes
+  //was having issue with bytes only being zeros, used for debugging
+  Serial.print("Raw: ");
+  for (int i = 0; i < bytes; i++) {
+    if (data[i] < 0x10) Serial.print("0");
+    Serial.print(data[i], HEX); Serial.print(" ");
+  }
+  Serial.println();
+
+  //checking status byte to see if trigger occurred
+  uint8_t statusByte = data[0];
+  if (statusByte & 0x80) {
+    Serial.println("Sensor still busy, skipping.");
+    delay(2000);
+    return;
+  }
+
+  //parsing data based on data sheet of sensor
+  uint32_t rawHum  = ((uint32_t)data[1] << 12)
+                   | ((uint32_t)data[2] << 4)
+                   | (data[3] >> 4);
+  uint32_t rawTemp = ((uint32_t)(data[3] & 0x0F) << 16)
+                   | ((uint32_t)data[4] << 8)
+                   |  data[5];
+
+  Serial.print("rawHum="); Serial.print(rawHum);
+  Serial.print("  rawTemp="); Serial.println(rawTemp);
+
+  //equations found in data sheet
+  float humidity = (rawHum  / 1048576.0f) * 100.0f;
+  float tempC    = (rawTemp / 1048576.0f) * 200.0f - 50.0f;
+  float tempF    = tempC * 9.0f / 5.0f + 32.0f;
+
+  Serial.print("Temperature: "); Serial.print(tempC, 1);
+  Serial.print(" C  /  ");      Serial.print(tempF, 1); Serial.println(" F");
+  Serial.print("Humidity:    "); Serial.print(humidity, 1); Serial.println(" %RH");
+  delay(2000);
+}
