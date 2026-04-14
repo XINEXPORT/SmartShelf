@@ -1,5 +1,6 @@
-using SmartShelf.web.Data;
 using Microsoft.EntityFrameworkCore;
+using SmartShelf.web.Data;
+using SmartShelf.web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,9 @@ builder.Services.AddDbContext<SmartShelfContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("SmartShelfContext")
     ));
+
+//Services
+builder.Services.AddScoped<DashboardService>();
 
 var app = builder.Build();
 
