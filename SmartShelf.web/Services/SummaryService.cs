@@ -45,7 +45,7 @@ namespace SmartShelf.web.Services
                 OutOfStockProducts = inventoryData.Count(i => i.Count == 0),
                 LastUpdated = DateTime.UtcNow
             };
-            return summary ;
+            return summary;
         }
 
 
