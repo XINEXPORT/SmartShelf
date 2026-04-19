@@ -1,6 +1,9 @@
-﻿namespace SmartShelf.web.Interface
+﻿using SmartShelf.web.DTOs.Dashboard;
+
+namespace SmartShelf.web.Interfaces
 {
-    public interface ISummary
+    public interface ISummaryService
     {
+        DashboardSummaryDto GetSummary();
     }
 }

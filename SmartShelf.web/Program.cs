@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartShelf.web.Data;
+using SmartShelf.web.Interfaces;
 using SmartShelf.web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ builder.Services.AddDbContext<SmartShelfContext>(options =>
 
 //Services
 builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<ISummaryService, SummaryService>();
 
 var app = builder.Build();
 

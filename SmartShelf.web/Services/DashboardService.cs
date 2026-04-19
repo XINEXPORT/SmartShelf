@@ -7,19 +7,18 @@ namespace SmartShelf.web.Services
 {
     public class DashboardService
     {
-        private readonly SmartShelfContext _context;
+        private readonly ISummaryService _summaryService;
 
-        public DashboardService(SmartShelfContext context)
+        public DashboardService(ISummaryService summaryService)
         {
-            _context = context;
+            _summaryService = summaryService;
         }
 
         public DashboardDto GetDashboard()
         {
-            // Build the dashboard 
             var dashboard = new DashboardDto
             {
-                Summary = new DashboardSummaryDto(),
+                Summary = _summaryService.GetSummary(),
                 Inventory = new List<InventoryItemDto>(),
                 Alerts = new List<AlertDto>(),
                 Status = new DashboardStatusDto()
