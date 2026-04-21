@@ -8,6 +8,33 @@ The Smart Shelf Inventory Monitoring System uses UHF RFID technology to identify
 Out-of-stock situations are a major challenge in retail, leading to lost sales and customer dissatisfaction. Smart shelves address this by continuously monitoring inventory levels and alerting store operators when stock is running low or items are misplaced. The system also supports environmental monitoring (temperature, humidity) to protect sensitive goods and improve operational efficiency.
 
 ## Technologies
-- ThingMagic UHF RFID Module
-- .NET Framework, C# Programming
-- Mercury API
+```
+Frontend Development:
+  React
+  Geist
+  Tailwind CSS
+  Shadcn
+  Node.js
+  Vite
+
+Backend Development:
+  C++
+  C#
+  .NET Framework 8.0
+  Linq
+
+Database:
+  Microsoft SQL Server
+
+External APIs:
+  Mercury API
+
+Hardware and Telemetry:
+  Jadak's ThingMagic UHF RFID Module
+  Arduino
+
+Testing:
+  MSTest
+  Apache JMeter 
+  
+```
