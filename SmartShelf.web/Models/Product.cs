@@ -13,6 +13,9 @@ namespace SmartShelf.web.Models
         [Required]
         public int Threshold { get; set; }
 
+        [Required]
+        public string ImagePath { get; set; } = null!;
+
         //Relationships
         // one product → many tags
         public ICollection<Tag> Tags { get; set; } = new List<Tag>();
