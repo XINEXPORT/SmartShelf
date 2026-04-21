@@ -8,11 +8,6 @@
 
         public string Message { get; set; } = string.Empty;
 
-        // (LowStock, OutOfStock)
-        public string Type { get; set; } = string.Empty;
-
-        public string Severity { get; set; } = string.Empty;
-
         public string Timestamp { get; set; } = string.Empty;
     }
 }

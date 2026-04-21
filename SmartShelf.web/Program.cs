@@ -14,8 +14,10 @@ builder.Services.AddDbContext<SmartShelfContext>(options =>
     ));
 
 //Services
-builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<ISummaryService, SummaryService>();
+builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<DashboardService>();
 
 var app = builder.Build();
 
