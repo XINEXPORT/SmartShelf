@@ -1,30 +1,28 @@
-﻿using SmartShelf.web.Data;
+﻿using SmartShelf.web.DTOs.Dashboard;
 using SmartShelf.web.Interfaces;
-using SmartShelf.web.DTOs.Dashboard;
-
 
 namespace SmartShelf.web.Services
 {
     public class DashboardService
     {
         private readonly ISummaryService _summaryService;
+        private readonly IAlertService _alertService;
 
-        public DashboardService(ISummaryService summaryService)
+        public DashboardService(ISummaryService summaryService, IAlertService alertService)
         {
             _summaryService = summaryService;
+            _alertService = alertService;
         }
 
         public DashboardDto GetDashboard()
         {
-            var dashboard = new DashboardDto
+            return new DashboardDto
             {
                 Summary = _summaryService.GetSummary(),
                 Inventory = new List<InventoryItemDto>(),
-                Alerts = new List<AlertDto>(),
+                Alerts = _alertService.GetAlerts(),
                 Status = new DashboardStatusDto()
             };
-
-            return dashboard;
         }
     }
 }
