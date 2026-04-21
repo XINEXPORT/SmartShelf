@@ -67,7 +67,8 @@ namespace SmartShelf.web.Controllers
                 {
                     ProductId = tcs.Tag.Product.Id,
                     ProductName = tcs.Tag.Product.Name,
-                    Threshold = tcs.Tag.Product.Threshold
+                    Threshold = tcs.Tag.Product.Threshold,
+                    Image = tcs.Tag.Product.ImagePath
                 })
 
                 /*
@@ -79,9 +80,8 @@ namespace SmartShelf.web.Controllers
 
                     ProductId = g.Key.ProductId,
                     ProductName = g.Key.ProductName,
-
+                    Image = g.Key.Image,
                     Count = g.Count(),
-
                     Threshold = g.Key.Threshold,
 
                     /*
