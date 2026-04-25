@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../../SmartShelf.web/SmartShelf.web.csproj" />
+  <Project Path="SmartShelf.Tests/SmartShelf.Tests.csproj" />
+</Solution>
