@@ -18,7 +18,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetSummary_ReturnsCorrectProductCounts
         Description: Tests that total product count is correctly calculated
         Input: Multiple products inserted into the database
         Output: TotalProducts equals expected value
@@ -44,7 +44,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetSummary_DetectsLowStockProducts
         Description: Tests that summary service executes when low stock conditions exist
         Input: Product with fewer tags than threshold
         Output: Non-null summary result
@@ -78,7 +78,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetSummary_ReturnsResult_WhenCalled
         Description: Tests that summary service returns a result when called
         Input: Empty database context
         Output: Non-null summary result
@@ -97,7 +97,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetSummary_ReturnsLastUpdatedValue
         Description: Tests that last updated timestamp is set
         Input: Empty database context
         Output: LastUpdated is not default value
@@ -116,7 +116,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetSummary_ReturnsZeroCounts_WhenDatabaseIsEmpty
         Description: Tests that all counts are zero when database is empty
         Input: Empty database context
         Output: All summary counts are zero
@@ -137,7 +137,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetSummary_ReturnsTotalProducts_WhenMultipleProductsExist
         Description: Tests total product count when multiple products exist
         Input: Multiple products inserted
         Output: TotalProducts equals expected count
@@ -164,7 +164,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetSummary_ReturnsResult_WhenProductHasZeroThreshold
         Description: Tests summary behavior when product threshold is zero
         Input: Product with zero threshold
         Output: Non-null summary result
@@ -193,7 +193,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetSummary_ReturnsResult_WhenTagsExist
         Description: Tests summary service when tags exist for a product
         Input: Product with multiple tags
         Output: Non-null summary result

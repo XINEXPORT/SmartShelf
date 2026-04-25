@@ -18,7 +18,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetInventory_ReturnsEmptyList_WhenNoProductsExist
         Description: Tests that the inventory service returns a result when no products exist
         Input: Empty database context
         Output: Non-null inventory result
@@ -36,7 +36,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetInventory_ReturnsInventoryItem_WhenProductExists
         Description: Tests that the inventory service returns a result when a single product exists
         Input: One product inserted into the database
         Output: Non-null inventory result
@@ -65,7 +65,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetInventory_ReturnsResult_WhenMultipleProductsExist
         Description: Tests that the inventory service returns a result when multiple products exist
         Input: Multiple products inserted into the database
         Output: Non-null inventory result
@@ -91,7 +91,7 @@ namespace SmartShelf.Tests.Services
         }
 
         /*
-        Title
+        Title: GetInventory_ReturnsResult_WhenTagsExist
         Description: Tests that the inventory service returns a result when tags exist for a product
         Input: Product with associated tags inserted into the database
         Output: Non-null inventory result
