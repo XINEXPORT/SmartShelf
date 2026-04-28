@@ -26,7 +26,11 @@ export default function ProductCard({ product }) {
       {/* Right — image */}
       <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 shadow-sm border border-slate-600">
         <img
-          src={product.imagePath || "https://placehold.co/80x80?text=?"}
+          src={product.image 
+            ? `http://localhost:31221${product.image}` 
+            : product.imagePath 
+            ? `http://localhost:31221${product.imagePath}`
+            : "https://placehold.co/80x80?text=?"}
           alt={product.productName}
           className="w-full h-full object-cover"
           onError={(e) => { e.target.src = "https://placehold.co/80x80?text=?" }}
