@@ -7,6 +7,13 @@ export default function ProductCard({ product }) {
 
   const cfg = getConfig()
 
+  //handle image absolute paths
+  const resolveImage = (path) => {
+    if (!path) return "https://placehold.co/80x80?text=?"
+    if (path.startsWith("http://") || path.startsWith("https://")) return path
+    return `http://localhost:31221${path}`
+  }
+
   return (
     <div className="flex items-center w-full rounded-xl border border-slate-600 bg-slate-700 px-5 py-4 gap-5 shadow-sm">
 
@@ -26,11 +33,7 @@ export default function ProductCard({ product }) {
       {/* Right — image */}
       <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 shadow-sm border border-slate-600">
         <img
-          src={product.image 
-            ? `http://localhost:31221${product.image}` 
-            : product.imagePath 
-            ? `http://localhost:31221${product.imagePath}`
-            : "https://placehold.co/80x80?text=?"}
+          src={resolveImage(product.image ?? product.imagePath)}
           alt={product.productName}
           className="w-full h-full object-cover"
           onError={(e) => { e.target.src = "https://placehold.co/80x80?text=?" }}
