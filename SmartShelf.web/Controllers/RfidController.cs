@@ -79,6 +79,21 @@ public class RfidController : ControllerBase
             }
 
             // Save tag read history
+            if (tagReadEvents.Count == 0)
+            {
+                return Ok(new
+                {
+                    message = "No known tags were saved. All scanned tags were skipped because they are not in the Tag table.",
+                    totalTagsRead = tags.Count,
+                    savedCount = 0,
+                    skippedCount = skippedEpcs.Count,
+                    skippedEpcs = skippedEpcs.Distinct().ToList(),
+                    currentStateUpdated = 0,
+                    presentCount = _context.TagCurrentState.Count(t => t.IsPresent),
+                    absentCount = _context.TagCurrentState.Count(t => !t.IsPresent)
+                });
+            }
+
             _context.TagReadEvent.AddRange(tagReadEvents);
             _context.SaveChanges();
 
