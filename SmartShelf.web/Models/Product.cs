@@ -16,6 +16,9 @@ namespace SmartShelf.web.Models
         [Required]
         public string ImagePath { get; set; } = null!;
 
+        [Required]
+        public bool IsLowStockAlertActive { get; set; } = false;
+
         //Relationships
         // one product → many tags
         public ICollection<Tag> Tags { get; set; } = new List<Tag>();
