@@ -78,6 +78,7 @@ public class RfidController : ControllerBase
                 });
             }
 
+            // Save tag read history
             if (tagReadEvents.Count == 0)
             {
                 return Ok(new
@@ -96,6 +97,7 @@ public class RfidController : ControllerBase
             _context.TagReadEvent.AddRange(tagReadEvents);
             _context.SaveChanges();
 
+            // Group current scan reads by EPC
             var readsGroupedByEpc = tagReadEvents
                 .GroupBy(t => t.EPC)
                 .ToDictionary(
@@ -105,6 +107,7 @@ public class RfidController : ControllerBase
 
             var seenEpcs = readsGroupedByEpc.Keys.ToHashSet();
 
+            // Update current state for tags seen in this scan
             foreach (var kvp in readsGroupedByEpc)
             {
                 string epc = kvp.Key;
@@ -139,8 +142,11 @@ public class RfidController : ControllerBase
                     existingState.LastSeenTimestamp = latest.Timestamp;
                     existingState.ReadCount = latest.ReadCount;
                     existingState.Frequency = latest.Frequency;
+
+                    // If the tag is seen at all, reset misses
                     existingState.MissedScanCount = 0;
 
+                    // If this scan is strong enough, mark present
                     if (isPresent)
                     {
                         existingState.IsPresent = true;
@@ -148,12 +154,14 @@ public class RfidController : ControllerBase
                 }
             }
 
+            // Mark tags not seen in this scan as not present
             var unseenStates = _context.TagCurrentState
                 .Where(tcs => !seenEpcs.Contains(tcs.EPC))
                 .ToList();
 
             foreach (var state in unseenStates)
             {
+                // Keep count of missed scans
                 state.MissedScanCount++;
 
                 if (state.MissedScanCount >= 3)
