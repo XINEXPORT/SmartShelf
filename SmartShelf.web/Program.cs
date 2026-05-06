@@ -18,6 +18,7 @@ builder.Services.AddScoped<ISummaryService, SummaryService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<DashboardService>();
+builder.Services.AddHttpClient<EmailService>();
 
 //CORS
 builder.Services.AddCors(options =>

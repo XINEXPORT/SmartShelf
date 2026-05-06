@@ -10,10 +10,12 @@ using System.Linq;
 public class RfidController : ControllerBase
 {
     private readonly SmartShelfContext _context;
+    private readonly EmailService _emailService;
 
-    public RfidController(SmartShelfContext context)
+    public RfidController(SmartShelfContext context, EmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
     [HttpGet("read-tags")]
@@ -37,8 +39,59 @@ public class RfidController : ControllerBase
         }
     }
 
+    [HttpPost("test-low-stock-email")]
+    public async Task<IActionResult> TestLowStockEmail()
+    {
+        try
+        {
+            var productStock = _context.Product
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Threshold,
+                    CurrentStock = _context.TagCurrentState.Count(tcs =>
+                        tcs.IsPresent &&
+                        tcs.Tag.ProductId == p.Id)
+                })
+                .ToList();
+
+            var lowStockProducts = productStock
+                .Where(p => p.CurrentStock <= p.Threshold)
+                .ToList();
+
+            if (lowStockProducts.Count == 0)
+            {
+                return Ok(new
+                {
+                    message = "No low stock products found.",
+                    productStock
+                });
+            }
+
+            foreach (var product in lowStockProducts)
+            {
+                await _emailService.SendLowStockEmailAsync(
+                    product.Name,
+                    product.CurrentStock,
+                    product.Threshold
+                );
+            }
+
+            return Ok(new
+            {
+                message = "Low stock email test completed.",
+                lowStockProducts
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.InnerException?.Message ?? ex.Message);
+        }
+    }
+
     [HttpPost("read-and-save")]
-    public IActionResult ReadAndSave()
+    public async Task<IActionResult> ReadAndSave()
     {
         var service = new RfidReaderService();
         var presenceService = new TagPresenceService();
@@ -78,7 +131,6 @@ public class RfidController : ControllerBase
                 });
             }
 
-            // Save tag read history
             if (tagReadEvents.Count == 0)
             {
                 return Ok(new
@@ -97,7 +149,6 @@ public class RfidController : ControllerBase
             _context.TagReadEvent.AddRange(tagReadEvents);
             _context.SaveChanges();
 
-            // Group current scan reads by EPC
             var readsGroupedByEpc = tagReadEvents
                 .GroupBy(t => t.EPC)
                 .ToDictionary(
@@ -107,7 +158,6 @@ public class RfidController : ControllerBase
 
             var seenEpcs = readsGroupedByEpc.Keys.ToHashSet();
 
-            // Update current state for tags seen in this scan
             foreach (var kvp in readsGroupedByEpc)
             {
                 string epc = kvp.Key;
@@ -142,11 +192,8 @@ public class RfidController : ControllerBase
                     existingState.LastSeenTimestamp = latest.Timestamp;
                     existingState.ReadCount = latest.ReadCount;
                     existingState.Frequency = latest.Frequency;
-
-                    // If the tag is seen at all, reset misses
                     existingState.MissedScanCount = 0;
 
-                    // If this scan is strong enough, mark present
                     if (isPresent)
                     {
                         existingState.IsPresent = true;
@@ -154,19 +201,47 @@ public class RfidController : ControllerBase
                 }
             }
 
-            // Mark tags not seen in this scan as not present
             var unseenStates = _context.TagCurrentState
                 .Where(tcs => !seenEpcs.Contains(tcs.EPC))
                 .ToList();
 
             foreach (var state in unseenStates)
             {
-                // Keep count of missed scans
                 state.MissedScanCount++;
 
                 if (state.MissedScanCount >= 3)
                 {
                     state.IsPresent = false;
+                }
+            }
+
+            _context.SaveChanges();
+
+            //track isLowStockAlertActive
+            //to determine when to send an email notification
+            var products = _context.Product.ToList();
+
+            foreach (var product in products)
+            {
+                var currentStock = _context.TagCurrentState.Count(tcs =>
+                    tcs.IsPresent &&
+                    tcs.Tag.ProductId == product.Id);
+
+                bool isLowStockNow = currentStock <= product.Threshold;
+
+                if (isLowStockNow && !product.IsLowStockAlertActive)
+                {
+                    await _emailService.SendLowStockEmailAsync(
+                        product.Name,
+                        currentStock,
+                        product.Threshold
+                    );
+
+                    product.IsLowStockAlertActive = true;
+                }
+                else if (!isLowStockNow && product.IsLowStockAlertActive)
+                {
+                    product.IsLowStockAlertActive = false;
                 }
             }
 
