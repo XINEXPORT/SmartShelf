@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartShelf.web.Data;
+using SmartShelf.web.DTOs.Dashboard;
 
 namespace SmartShelf.web.Controllers
 {
@@ -108,6 +109,33 @@ namespace SmartShelf.web.Controllers
 
             //Return inventory data as JSON
             return Ok(inventory);
+        }
+
+        /*
+        GetIndividualItems
+        Description:
+        Retrieves individual RFID-tagged items from the latest scan.
+        MissedScanCount == 0 means the tag was seen during the most recent
+        read-and-save operation. Shelf is estimated from RSSI.
+        */
+        [HttpGet("items")]
+        public IActionResult GetIndividualItems()
+        {
+            var items = _context.TagCurrentState
+                .Include(tcs => tcs.Tag)
+                .Where(tcs => tcs.MissedScanCount == 0)
+                .Select(tcs => new IndividualInventoryItemDto
+                {
+                    ProductId = tcs.Tag.ProductId,
+                    EPC = tcs.EPC,
+                    Rssi = tcs.Rssi,
+                    Shelf = tcs.Antenna //for two antenna reads      //tcs.Rssi >= -30 ? "Bottom Shelf" : "Top Shelf"
+                })
+                .OrderBy(item => item.ProductId)
+                .ThenBy(item => item.EPC)
+                .ToList();
+
+            return Ok(items);
         }
     }
 }

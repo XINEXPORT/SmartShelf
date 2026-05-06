@@ -144,13 +144,16 @@ public class RfidReaderService
         - GEN2 → UHF RFID protocol
         - 1000 → internal timing parameter
         */
-        int[] antennaList = { 1 };
+
+        //add the second antenna
+        int[] antennaList = { 1 , 2 };
 
         /*
         Made antenna selection explicit for testing and debugging.
         This helps confirm exactly which antenna is being used.
         */
         var plan = new SimpleReadPlan(antennaList, TagProtocol.GEN2, null, null, 1000);
+
         _reader.ParamSet("/reader/read/plan", plan);
     }
 
