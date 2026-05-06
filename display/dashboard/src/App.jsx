@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react"
 import ProductCard from "./components/ProductCard"
 import AlertsPanel from "./components/AlertsPanel"
+import IndividualItemsTable from "./components/IndividualItemsTable"
 import { mockDashboard } from "./mockData"
 
 const API_URL = "http://localhost:31221/api/dashboard"
 const INVENTORY_URL = "http://localhost:31221/api/inventory"
+const INDIVIDUAL_ITEMS_URL = "http://localhost:31221/api/inventory/items"
 const USE_MOCK = false // flip to false when testing with Christine's backend
 
 export default function App() {
   const [dashboard, setDashboard] = useState(mockDashboard)
+  const [individualItems, setIndividualItems] = useState([])
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -16,20 +19,23 @@ export default function App() {
 
     const fetchData = async () => {
       try {
-        const [dashRes, invRes] = await Promise.all([
+        const [dashRes, invRes, itemsRes] = await Promise.all([
           fetch(API_URL),
-          fetch(INVENTORY_URL)
+          fetch(INVENTORY_URL),
+          fetch(INDIVIDUAL_ITEMS_URL)
         ])
 
-        if (!dashRes.ok || !invRes.ok) throw new Error("Fetch failed")
+        if (!dashRes.ok || !invRes.ok || !itemsRes.ok) throw new Error("Fetch failed")
 
         const dashData = await dashRes.json()
         const invData = await invRes.json()
+        const itemsData = await itemsRes.json()
 
         setDashboard({
           ...dashData,
           inventory: invData
         })
+        setIndividualItems(itemsData)
         setError(null)
       } catch (err) {
         console.error("Failed to fetch:", err)
@@ -85,7 +91,7 @@ export default function App() {
       </div>
 
       {/* Main Layout */}
-      <div className="flex gap-6 items-stretch h-[calc(100vh-220px)]">
+      <div className="flex gap-6 items-stretch h-[calc(100vh-420px)] min-h-[360px]">
 
         {/* Left — Inventory (2/3) */}
         <div className="w-2/3 bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-5 flex flex-col overflow-hidden">
@@ -116,6 +122,8 @@ export default function App() {
         </div>
 
       </div>
+
+      <IndividualItemsTable items={individualItems} />
     </div>
   )
 }

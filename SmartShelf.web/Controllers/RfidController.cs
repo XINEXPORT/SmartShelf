@@ -114,6 +114,8 @@ public class RfidController : ControllerBase
                 List<TagReadEvent> readsForTag = kvp.Value;
 
                 var latest = readsForTag.First();
+                var strongest = readsForTag.OrderByDescending(x => x.Rssi).First(); //only add the strongest antenna read, so that will be the localization
+                int totalReadCount = readsForTag.Sum(x => x.ReadCount);
                 bool isPresent = presenceService.IsTagPresent(readsForTag);
 
                 var existingState = _context.TagCurrentState
@@ -125,11 +127,11 @@ public class RfidController : ControllerBase
                     {
                         EPC = epc,
                         ReaderId = latest.ReaderId,
-                        Antenna = latest.Antenna,
-                        Rssi = latest.Rssi,
+                        Antenna = strongest.Antenna,
+                        Rssi = strongest.Rssi,
                         LastSeenTimestamp = latest.Timestamp,
-                        ReadCount = latest.ReadCount,
-                        Frequency = latest.Frequency,
+                        ReadCount = totalReadCount,
+                        Frequency = strongest.Frequency,
                         IsPresent = isPresent,
                         MissedScanCount = 0
                     });
@@ -137,11 +139,11 @@ public class RfidController : ControllerBase
                 else
                 {
                     existingState.ReaderId = latest.ReaderId;
-                    existingState.Antenna = latest.Antenna;
-                    existingState.Rssi = latest.Rssi;
+                    existingState.Antenna = strongest.Antenna;
+                    existingState.Rssi = strongest.Rssi;
                     existingState.LastSeenTimestamp = latest.Timestamp;
-                    existingState.ReadCount = latest.ReadCount;
-                    existingState.Frequency = latest.Frequency;
+                    existingState.ReadCount = totalReadCount;
+                    existingState.Frequency = strongest.Frequency;
 
                     // If the tag is seen at all, reset misses
                     existingState.MissedScanCount = 0;
